@@ -2,7 +2,6 @@ import operator
 import sys
 
 datapath = "datasets/soc-Epinions1.txt"
-isdirected = True
 
 # Returns a list of tuples containing edges in the form [node1,node2]
 def pullNodes(f):
@@ -54,18 +53,24 @@ def pullNodes(f):
 # _In-Degree_ which is the  number of edges into it. Only relevant in a directed 
 # graph
 
-def findInfluencers(d, directed):
+def findInfluencers(d, de):
     nodes ={}
+
+    # If we're looking for the in degree, we care about what is being linked
+    # to, for out degree we care about what is doing the linking 
+    degree = 0
+    if de == "in": 
+        degree = 1
 
     #Iterate through list of edges
     for edge in d:
         
         #Check to see if if we've recorded this node yet, if not set it to one,
         # if so increment
-        if not edge[0] in nodes:
-            nodes[edge[0]]=1
+        if not edge[degree] in nodes:
+            nodes[edge[degree]]=1
         else:
-            nodes[edge[0]]+=1
+            nodes[edge[degree]]+=1
 
     # Sort nodes by 'influencers'
     sortednodes = sorted(nodes.items(), key=operator.itemgetter(1))
@@ -83,4 +88,4 @@ dset = pullNodes(datapath)
 if dset == None:
     sys.exit()
 
-print(findInfluencers(dset, isdirected))
+print(findInfluencers(dset, "in"))
