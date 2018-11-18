@@ -29,14 +29,15 @@ def pullNodes(f):
     return edges
 
 
-# Takes in node dataset D and returns a tuple of node types and their influence
+# Takes list of edges d and returns a list of the top 3% of influencers
 def findInfluencers(d):
     nodes ={}
 
     #Iterate through list of edges
     for edge in d:
+        
         #Check to see if if we've recorded this node yet, if not set it to one,
-        # if so, increment
+        # if so increment
         if not edge[0] in nodes:
             nodes[edge[0]]=1
         else:
@@ -45,8 +46,11 @@ def findInfluencers(d):
     # Sort nodes by 'influencers'
     sortednodes = sorted(nodes.items(), key=operator.itemgetter(1))
 
-    # Return top 3 influencers
-    return sortednodes[::-1][0:3] 
+    # Calculate how many nodes comprise 3%
+    topsize = (int)(0.03*len(d))
+
+    # Return top 3% of influencers
+    return sortednodes[::-1][0:topsize] 
 
 # Pull nodes from the specified datapath
 dset = pullNodes(datapath)
