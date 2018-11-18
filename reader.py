@@ -1,7 +1,8 @@
 import operator
 import sys
 
-datapath = "datasets/artist_edges.csv"
+datapath = "datasets/soc-Epinions1.txt"
+isdirected = True
 
 # Returns a list of tuples containing edges in the form [node1,node2]
 def pullNodes(f):
@@ -13,24 +14,47 @@ def pullNodes(f):
         print("The requested file could not be found!")
         return None
     
-    # The file exists, split by line and iterate through
     edges = []
-    for line in text.read().split():
-        
-        # Split again by comma
-        l = line.split(",")
+    # The file exists, check to see what type of file it is:
+    # print("Filetype is: ", f[-3:])
+    if f[-3:] == "txt":
+        for line in text.read().splitlines():
+            
+            # Some text files have notes at the top, ignore it if so
+            if not line[0].isdigit():
+                # print("Ignoring ", line)
+                continue
 
-        #Add this edge to our list as a tuple
-        edges.append([l[0], l[1]])
-    
-    # Remove the headerline from out list of edges
-    edges.pop(0)
+            # Split line by whitespace
+            l = line.split()
+
+            # Add this to our list as a tuple
+            edges.append([l[0], l[1]])
+
+    #This is a CSV
+    elif f[-3:] == "csv":
+        for line in text.read().split():
+            
+            # Split again by comma
+            l = line.split(",")
+
+            #Add this edge to our list as a tuple
+            edges.append([l[0], l[1]])
+        
+        # Remove the headerline from out list of edges
+        edges.pop(0)
+
+    # Close the textfile and return
     text.close()
     return edges
 
 
-# Takes list of edges d and returns a list of the top 3% of influencers
-def findInfluencers(d):
+# Takes list of edges d, and whether or not it's directed. If So, return top 3%
+# of influencers. A node's rank as an influencer is determined by its 
+# _In-Degree_ which is the  number of edges into it. Only relevant in a directed 
+# graph
+
+def findInfluencers(d, directed):
     nodes ={}
 
     #Iterate through list of edges
@@ -59,4 +83,4 @@ dset = pullNodes(datapath)
 if dset == None:
     sys.exit()
 
-print(findInfluencers(dset))
+print(findInfluencers(dset, isdirected))
