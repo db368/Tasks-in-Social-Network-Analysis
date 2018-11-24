@@ -26,9 +26,8 @@ def setPostvisit(node):
     postvisit[node] = clock
     clock += 1 
 
-
-def depthFirstSearch(graph):
-    ''' Perform a Depth First Search on G '''
+def resetGlobals():
+    ''' Resets globals to ready for an exploration '''
     global visited    # A set of all visited nodes
     global layer     # Recursion Depth for Debug Purposes
     global previsit  # The previsit numbers of a all nodes
@@ -39,7 +38,15 @@ def depthFirstSearch(graph):
     clock = 0
     visited = set() # Reset visited nodes
     layer = 0 # Reset Recursion Depth
-    
+
+
+def directedConnectedness(startnode, graph, postvisits):
+    ''' Returns all strongly connected components of a given node '''
+
+def depthFirstSearch(graph):
+    ''' Perform a Depth First Search on G '''
+
+    resetGlobals()   
     # Create a set of all nodes in G
     unvisited = set(graph.getNodes())
 
@@ -55,18 +62,8 @@ def depthFirstSearch(graph):
 
 def beginExploration(n):
     """ Takes in a Node n, then returns all connected nodes """
-   
-    global visited    # A set of all visited nodes
-    global layer     # Recursion Depth for Debug Purposes
-    global previsit  # The previsit numbers of a all nodes
-    global postvisit # The post visit values of all nodes
-    global clock     # One clock for both    
-
-    previsit = {}; postvisit = {}
-    clock = 0
-    visited = set() # Reset visited nodes
-    layer = 0 # Reset Recursion Depth
     
+    resetGlobals()
     # Explore the given node
     explore(n)
 
