@@ -37,7 +37,6 @@ class Graph():
     def __init__(self, input_file):
         self.pullNodes(input_file)
 
-
     def pullNodes(self, f): # For task 2
         """Initializes node set and graph list from an input file"""
 
@@ -138,3 +137,7 @@ class Graph():
 
         # Return top 3% of influencers
         return sortednodes[::-1][0:topsize] 
+
+    def getNodes(self):
+        ''' Returns a list of all nodes in the graph '''
+        return self.nodes

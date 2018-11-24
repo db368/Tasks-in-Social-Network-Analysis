@@ -6,11 +6,11 @@ datapath = "datasets/Wiki-Vote.txt"
 visited = set()
 layer = 0
 
-previsit = {}; postvisit = {}
-clock = 0
-visited = set() # Reset visited nodes
-layer = 0 # Reset Recursion Depth
-
+layer = None
+previsit = None
+clock = None
+postvisit = None
+visited = None
 
 def setPrevisit(node):
     ''' Sets the previsit value for the specified node during a traversal '''
@@ -25,6 +25,33 @@ def setPostvisit(node):
     global clock
     postvisit[node] = clock
     clock += 1 
+
+
+def depthFirstSearch(graph):
+    ''' Perform a Depth First Search on G '''
+    global visited    # A set of all visited nodes
+    global layer     # Recursion Depth for Debug Purposes
+    global previsit  # The previsit numbers of a all nodes
+    global postvisit # The post visit values of all nodes
+    global clock     # One clock for both    
+
+    previsit = {}; postvisit = {}
+    clock = 0
+    visited = set() # Reset visited nodes
+    layer = 0 # Reset Recursion Depth
+    
+    # Create a set of all nodes in G
+    unvisited = set(graph.getNodes())
+
+    # Continue to DFS on arbitrary element until all elements are visited   
+    while len(unvisited) > 0 :
+        unvisited -= visited
+        explore(unvisited.pop())
+    
+
+    return Nobjects.Network(None, visited, previsit, postvisit)
+
+
 
 def beginExploration(n):
     """ Takes in a Node n, then returns all connected nodes """
@@ -88,10 +115,9 @@ def cleanNetwork(d): # Task 4
     # must lie in a source strongly connected component
     return None
 
-# Pull nodes from the specified datapath
+
 dset = Nobjects.Graph(datapath)
 
-# Quit if dset fails to be created
 if dset == None:
     sys.exit()
 
@@ -101,6 +127,6 @@ G = dset.nodeDict()
 influencers = dset.findInfluencers("out")
 
 # Explore all nodes connected to the biggest influencer
-network = beginExploration(influencers[0][0])
+network = depthFirstSearch(dset)
 print(network)
 print(network.getPrevisit())
