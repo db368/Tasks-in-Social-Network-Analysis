@@ -2,7 +2,7 @@ import operator
 
 
 class Network:
-    ''' A collection stats for a specific node'''
+    ''' A collection of results for a search on a node'''
     
     def __init__(self, source = None, visited = set(), previsit = {}, postvisit = {}):
         self.source = source       # Root Node
@@ -95,20 +95,22 @@ class Graph():
         self.nodes = nodes
         self.edges = edges
     
-    def nodeDict(self):     
+    def nodeDict(self, reversed = False):     
         """ Returns graph as a dictionary, where each key is a node, and its value is a
-        list of edges out of it """
+        list of edges out of it. If Reverse is specified, return a list of reversed 
+        edges GR. """
         
-        nodes = {}
-        # Iterate through list of edges
-        for edge in self.edges:
-            # Check to see if if we've recorded this node yet, if not, create a new
-            # list
-            if not edge[0] in nodes:
-                nodes[edge[0]] = [edge[1]]
-            else:
-                nodes[edge[0]].append(edge[1])
+        nodes = dict.fromkeys(self.nodes, [])
 
+        # Allow for a dict of reversed edges
+        if reversed:
+            edges = self.getReversedEdges()
+        else:
+            edges = self.edges
+
+        # Iterate through list of edges
+        for edge in edges:
+            nodes[edge[0]].append(edge[1])
 
         return nodes
 
@@ -141,3 +143,19 @@ class Graph():
     def getNodes(self):
         ''' Returns a list of all nodes in the graph '''
         return self.nodes
+
+    def getReversedEdges(self):
+        ''' Returns a reversed list of edges GR '''
+        reversed_edges = []
+        for i in range(0, len(reversed_edges)):
+            # Store Edge
+            edge = self.edges[i]
+            
+            # Swap 
+            temp = edge[0]
+            edge[0] = edge[1]
+            edge[1] = temp
+
+            # Replace
+            reversed_edges.append(edge)
+        return reversed_edges
