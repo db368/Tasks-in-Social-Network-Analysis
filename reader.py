@@ -11,100 +11,6 @@ clock = 0
 visited = set() # Reset visited nodes
 layer = 0 # Reset Recursion Depth
 
-def pullNodes(f): # For task 2
-    """Returns a list of tuples containing edges in the form [node1,node2]"""
-
-    # Start off with a quick check to see if the file exists
-    try:
-        text = open(f)
-    except FileNotFoundError:
-        print("The requested file could not be found!")
-        return None
-    
-    edges = []
-    # The file exists, check to see what type of file it is: print("Filetype is:
-    # ", f[-3:])
-    if f[-3:] == "txt":
-        for line in text.read().splitlines():
-            
-            # Some text files have notes at the top, ignore it if so
-            if not line[0].isdigit():
-                # print("Ignoring ", line)
-                continue
-
-            # Split line by whitespace
-            l = line.split()
-
-            # Add this to our list as a tuple
-            edges.append([l[0], l[1]])
-
-    #This is a CSV
-    elif f[-3:] == "csv":
-        for line in text.read().split():
-            
-            # Split again by comma
-            l = line.split(",")
-
-            #Add this edge to our list as a tuple
-            edges.append([l[0], l[1]])
-        
-        # Remove the headerline from out list of edges
-        edges.pop(0)
-
-    # Close the textfile and return
-    text.close()
-    return edges
-
-
-def findInfluencers(d, de): # For Task 3
-    """ Takes list of edges d, and whether or not it's directed. If So, return 
-    top 3% of influencers. A node's rank as an influencer is determined by its
-    In-Degree which is the  number of edges into it. Only relevant in a
-    directed graph """
-
-    nodes ={}
-
-    # If we're looking for the in degree, we care about what is being linked to,
-    # for out degree we care about what is doing the linking 
-    degree = 0
-    if de == "in": 
-        degree = 1
-
-    #Iterate through list of edges
-    for edge in d:
-        
-        #Check to see if if we've recorded this node yet, if not set it to one,
-        # if so increment
-        if not edge[degree] in nodes:
-            nodes[edge[degree]]=1
-        else:
-            nodes[edge[degree]]+=1
-
-    # Sort nodes by 'influencers'
-    sortednodes = sorted(nodes.items(), key=operator.itemgetter(1))
-
-    # Calculate how many nodes comprise 3%
-    topsize = (int)(0.03*len(d))
-
-    # Return top 3% of influencers
-    return sortednodes[::-1][0:topsize] 
-
-def nodeDict(d):     
-    """ Returns graph as a dictionary, where each key is a node, and its value is a
-     list of edges out of it """
-    nodes ={}
-   
-    # Iterate through list of edges
-    for edge in d:
-        
-        # Check to see if if we've recorded this node yet, if not, create a new
-        # list
-        if not edge[0] in nodes:
-            nodes[edge[0]] = [edge[1]]
-        else:
-            nodes[edge[0]].append(edge[1])
-
-    return nodes
 
 def setPrevisit(node):
     ''' Sets the previsit value for the specified node during a traversal '''
@@ -122,19 +28,19 @@ def setPostvisit(node):
 
 def beginExploration(n):
     """ Takes in a Node n, then returns all connected nodes """
-    global visited # A set of all visited nodes
-    global layer   # Recursion Depth for Debug Purposes
-
-
-    global previsit      # The previsit numbers of a all nodes
-    global postvisit    # The post visit values of all nodes
-    global clock        # One clock for both    
+   
+    global visited    # A set of all visited nodes
+    global layer     # Recursion Depth for Debug Purposes
+    global previsit  # The previsit numbers of a all nodes
+    global postvisit # The post visit values of all nodes
+    global clock     # One clock for both    
 
     previsit = {}; postvisit = {}
     clock = 0
     visited = set() # Reset visited nodes
     layer = 0 # Reset Recursion Depth
     
+    # Explore the given node
     explore(n)
 
     C = Nobjects.Network(n, visited, previsit, postvisit)
@@ -183,7 +89,7 @@ def cleanNetwork(d): # Task 4
     return None
 
 # Pull nodes from the specified datapath
-dset = pullNodes(datapath)
+dset = Nobjects.Graph(datapath)
 
 # Quit if dset fails to be created
 if dset == None:
@@ -191,8 +97,8 @@ if dset == None:
 
 # Generate a dictionary of Nodes for fast access, then generate a list of
 # influencers
-G = nodeDict(dset)
-influencers = findInfluencers(dset, "in")
+G = dset.nodeDict()
+influencers = dset.findInfluencers("out")
 
 # Explore all nodes connected to the biggest influencer
 network = beginExploration(influencers[0][0])
