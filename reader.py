@@ -1,10 +1,15 @@
 import operator
 import sys
+import Nobjects
 
 datapath = "datasets/Wiki-Vote.txt"
 visited = set()
 layer = 0
 
+previsit = {}; postvisit = {}
+clock = 0
+visited = set() # Reset visited nodes
+layer = 0 # Reset Recursion Depth
 
 def pullNodes(f): # For task 2
     """Returns a list of tuples containing edges in the form [node1,node2]"""
@@ -54,7 +59,7 @@ def pullNodes(f): # For task 2
 def findInfluencers(d, de): # For Task 3
     """ Takes list of edges d, and whether or not it's directed. If So, return 
     top 3% of influencers. A node's rank as an influencer is determined by its
-    _In-Degree_ which is the  number of edges into it. Only relevant in a
+    In-Degree which is the  number of edges into it. Only relevant in a
     directed graph """
 
     nodes ={}
@@ -101,19 +106,41 @@ def nodeDict(d):
 
     return nodes
 
+def setPrevisit(node):
+    ''' Sets the previsit value for the specified node during a traversal '''
+    global previsit
+    global clock
+    previsit[node] = clock
+    clock += 1 
+
+def setPostvisit(node):
+    ''' Sets the postvisit value for the specified node during a traversal '''
+    global postvisit
+    global clock
+    postvisit[node] = clock
+    clock += 1 
 
 def beginExploration(n):
     """ Takes in a Node n, then returns all connected nodes """
     global visited # A set of all visited nodes
     global layer   # Recursion Depth for Debug Purposes
 
+
+    global previsit      # The previsit numbers of a all nodes
+    global postvisit    # The post visit values of all nodes
+    global clock        # One clock for both    
+
+    previsit = {}; postvisit = {}
+    clock = 0
     visited = set() # Reset visited nodes
     layer = 0 # Reset Recursion Depth
+    
+    explore(n)
 
-    return explore(n)
+    C = Nobjects.Network(n, visited, previsit, postvisit)
+    return C
 
 def explore(v):
-
     """ Returns nodes connected to N """
     # Define Global Variables
     global visited
@@ -123,7 +150,7 @@ def explore(v):
     # Mark v as visited   
     layer = layer + 1
     visited.add(v)
-
+    setPrevisit(int(v))
     # Quick check to see if this node exists in our dictionary
     if v not in G or G[v] is None:
         return
@@ -136,14 +163,12 @@ def explore(v):
         if edge not in visited and edge in G:
                 
                 #It has edges, go one layer deeper
-                explore(edge)
+               explore(edge)
 
     layer = layer-1
-
+    setPostvisit(int(v))
     # Return visited edges
     return visited
-
-
 
 def cleanNetwork(d): # Task 4
     '''Report nodes that are either disconnected, or only have some connections
@@ -171,4 +196,5 @@ influencers = findInfluencers(dset, "in")
 
 # Explore all nodes connected to the biggest influencer
 network = beginExploration(influencers[0][0])
-print("VISITED NODES", network)
+print(network)
+print(network.getPrevisit())
