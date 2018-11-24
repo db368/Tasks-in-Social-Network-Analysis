@@ -6,9 +6,9 @@ visited = set()
 layer = 0
 
 
-# Returns a list of tuples containing edges in the form [node1,node2]
 def pullNodes(f): # For task 2
-    
+    """Returns a list of tuples containing edges in the form [node1,node2]"""
+
     # Start off with a quick check to see if the file exists
     try:
         text = open(f)
@@ -17,8 +17,8 @@ def pullNodes(f): # For task 2
         return None
     
     edges = []
-    # The file exists, check to see what type of file it is:
-    # print("Filetype is: ", f[-3:])
+    # The file exists, check to see what type of file it is: print("Filetype is:
+    # ", f[-3:])
     if f[-3:] == "txt":
         for line in text.read().splitlines():
             
@@ -51,15 +51,16 @@ def pullNodes(f): # For task 2
     return edges
 
 
-# Takes list of edges d, and whether or not it's directed. If So, return top 3%
-# of influencers. A node's rank as an influencer is determined by its 
-# _In-Degree_ which is the  number of edges into it. Only relevant in a directed 
-# graph
 def findInfluencers(d, de): # For Task 3
+    """ Takes list of edges d, and whether or not it's directed. If So, return 
+    top 3% of influencers. A node's rank as an influencer is determined by its
+    _In-Degree_ which is the  number of edges into it. Only relevant in a
+    directed graph """
+
     nodes ={}
 
-    # If we're looking for the in degree, we care about what is being linked
-    # to, for out degree we care about what is doing the linking 
+    # If we're looking for the in degree, we care about what is being linked to,
+    # for out degree we care about what is doing the linking 
     degree = 0
     if de == "in": 
         degree = 1
@@ -83,9 +84,9 @@ def findInfluencers(d, de): # For Task 3
     # Return top 3% of influencers
     return sortednodes[::-1][0:topsize] 
 
-# Returns graph as a dictionary, where each key is a node, and its value is a
-# list of edges out of it
 def nodeDict(d):     
+    """ Returns graph as a dictionary, where each key is a node, and its value is a
+     list of edges out of it """
     nodes ={}
    
     # Iterate through list of edges
@@ -100,8 +101,9 @@ def nodeDict(d):
 
     return nodes
 
-# Takes in a Node n, then returns all connected nodes
+
 def beginExploration(n):
+    """ Takes in a Node n, then returns all connected nodes """
     global visited # A set of all visited nodes
     global layer   # Recursion Depth for Debug Purposes
 
@@ -110,9 +112,9 @@ def beginExploration(n):
 
     return explore(n)
 
-# Returns nodes connected to N
 def explore(v):
 
+    """ Returns nodes connected to N """
     # Define Global Variables
     global visited
     global layer
@@ -129,8 +131,8 @@ def explore(v):
     # Iterate through all edges of v
     for edge in G[v]:
 
-        # Check to see if we've already visited v , or if it even has
-        # any edges out of it 
+        # Check to see if we've already visited v , or if it even has any edges
+        # out of it 
         if edge not in visited and edge in G:
                 
                 #It has edges, go one layer deeper
@@ -142,15 +144,16 @@ def explore(v):
     return visited
 
 
-# Report nodes that are either disconnected, or only have some connections
-# to each other. 
+
 def cleanNetwork(d): # Task 4
+    '''Report nodes that are either disconnected, or only have some connections
+    to each other. '''
     # Depth first search can be used to check if a graph is connected
     
-    # Two nodes u and v of a directed graph are connected if there is a path 
+    # Two nodes u and v of a directed graph are connected if there is a path
     # from u to v and a path from v to u
     
-    # The node that receives the highest post number in a depth-first search 
+    # The node that receives the highest post number in a depth-first search
     # must lie in a source strongly connected component
     return None
 
@@ -161,7 +164,8 @@ dset = pullNodes(datapath)
 if dset == None:
     sys.exit()
 
-# Generate a dictionary of Nodes for fast access, then generate a list of influencers
+# Generate a dictionary of Nodes for fast access, then generate a list of
+# influencers
 G = nodeDict(dset)
 influencers = findInfluencers(dset, "in")
 
