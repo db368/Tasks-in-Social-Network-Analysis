@@ -2,6 +2,7 @@ import operator
 import sys
 import Nobjects
 
+#datapath = "datasets/friendship.txt"
 datapath = "datasets/Wiki-Vote.txt"
 #datapath = "datasets/soc-Epinions1.txt"
 
@@ -88,7 +89,7 @@ def directedConnectedness(graph):
         saved_visited = visited.copy()
 
         if edge not in visited:
-            explore(edge)
+            explore(edge, False)
 
         # Find out which nodes were discovered in this component, store them
         # and their post visits in a considered posts
@@ -139,7 +140,7 @@ def beginExploration(n):
     C = Nobjects.Network(n, visited, previsit, postvisit)
     return C
 
-def explore(v):
+def explore(v, directed = True):
     """ Returns nodes connected to N """
     
     # Define Global Variables
@@ -152,33 +153,42 @@ def explore(v):
     layer = layer + 1
     visited.add(v)
     setPrevisit(int(v))
+     
+    # If it's directed, edge ordering doesn't matter, add all edges that
+    # link to v
+    edges = []
+    if v in G:
+        edges += G[v]
 
-    # Iterate through all edges of v
-    for edge in G[v]:
+    if not directed: 
+        for key in G.keys():
+            if ((v in G[key]) and (key not in visited)) and (key not in edges) and v != key:
+                edges += key
 
-        # Check to see if we've already visited v , or if it even has any edges
-        # out of it 
-        if edge not in visited and edge in G:
+    # Iterate through all edges
+    for edge in edges:
+        # Check to see if we've already visited v
+        if edge not in visited:
             #It has edges, go one layer deeper
-            explore(edge)
+            explore(edge, directed)
 
     layer = layer-1
     setPostvisit(int(v))
     # Return visited edges
     return visited
 
-def cleanNetwork(d): # Task 4
+def cleanNetwork(graph): # Task 4
     '''Report nodes that are either disconnected, or only have some connections
     to each other. '''
-    # Depth first search can be used to check if a graph is connected
     
-    # Two nodes u and v of a directed graph are connected if there is a path
-    # from u to v and a path from v to u
-    
-    # The node that receives the highest post number in a depth-first search
-    # must lie in a source strongly connected component
-    return None
+    # First, find all sinks
+    sinks = sorted(directedConnectedness(graph), key=operator.itemgetter(1))
 
+    # Next, explore to find all connected nodes
+    resetGlobals()
+    cleaned_network = explore(str(sinks[-1][0]))
+
+    return cleaned_network
 
 # Generate a graph from our specified Text file
 dset = Nobjects.Graph(datapath)
@@ -188,9 +198,6 @@ G = dset.nodeDict()
 influencers = dset.findInfluencers("out")
 
 # Gather a list of sinks in this graph
-sinks = directedConnectedness(dset)
-print(sinks)
-print("SINKS: ", len(sinks))
-
+print(cleanNetwork(dset))
 
 #dset.printEdges("T2.net")
