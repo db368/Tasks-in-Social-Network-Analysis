@@ -1,5 +1,5 @@
 import operator
-
+import networkx as nx
 
 class Network:
     ''' A collection of results for a search on a node'''
@@ -91,7 +91,7 @@ class Graph():
                 nodes.add(edge[0])
             if edge[1] not in nodes:
                 nodes.add(edge[1])
-        
+
         self.nodes = nodes
         self.edges = edges
     
@@ -100,7 +100,7 @@ class Graph():
         list of edges out of it. If Reverse is specified, return a list of reversed 
         edges GR. """
         
-        nodes = dict.fromkeys(self.nodes, [])
+        nodes = {key:[] for key in self.nodes}
 
         # Allow for a dict of reversed edges
         if reversed:
@@ -147,7 +147,7 @@ class Graph():
     def getReversedEdges(self):
         ''' Returns a reversed list of edges GR '''
         reversed_edges = []
-        for i in range(0, len(reversed_edges)):
+        for i in range(0, len(self.edges)):
             # Store Edge
             edge = self.edges[i]
             
@@ -159,3 +159,7 @@ class Graph():
             # Replace
             reversed_edges.append(edge)
         return reversed_edges
+    
+    def printEdges(self, filename):
+        G = nx.convert.from_edgelist(self.edges, nx.MultiDiGraph)
+        nx.write_pajek(G, filename)
