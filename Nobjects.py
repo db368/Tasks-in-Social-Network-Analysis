@@ -92,8 +92,8 @@ class Graph():
             if edge[1] not in nodes:
                 nodes.add(edge[1])
 
-        self.nodes = nodes
-        self.edges = edges
+        self.nodes = sorted(nodes)
+        self.edges = sorted(edges, key=operator.itemgetter(0))
     
     def nodeDict(self, reversed = False):     
         """ Returns graph as a dictionary, where each key is a node, and its value is a

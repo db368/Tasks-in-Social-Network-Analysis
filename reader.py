@@ -3,14 +3,18 @@ import sys
 import Nobjects
 
 datapath = "datasets/Wiki-Vote.txt"
+#datapath = "datasets/soc-Epinions1.txt"
+
 visited = set()
 layer = 0
 
+# Define Global Vairables
 layer = None
 previsit = None
 clock = None
 postvisit = None
 visited = None
+prepostvisit = None
 
 def setPrevisit(node):
     ''' Sets the previsit value for the specified node during a traversal '''
@@ -32,7 +36,8 @@ def resetGlobals():
     global layer     # Recursion Depth for Debug Purposes
     global previsit  # The previsit numbers of a all nodes
     global postvisit # The post visit values of all nodes
-    global clock     # One clock for both    
+    global clock     # One clock for both
+
 
     previsit = {}
     postvisit = {}
@@ -43,28 +48,47 @@ def resetGlobals():
 
 def directedConnectedness(graph):
     ''' Returns all strongly connected components of a given node '''
-    resetGlobals()
     
-    global Gr
     global G
+    global prepostvisit
     global postvisit
     global visited
-
-    # Temporarially store Gr in G 
+    resetGlobals()
+    
+    # Manually reset prepost visit
+    prepostvisit = {}
+    
     G = graph.nodeDict(True)
 
-    unvisited = set(graph.getNodes())
+    # Initialize sets
     this_run = set()
-    
     sinks = []
+    
+    # First, Run through a depth first search and store results
+    idfs = depthFirstSearch(graph)
+    prepostvisit = idfs.getPrevisit().copy()
+    resetGlobals()
+
+    ordered_edges = []
+    # Format list to be as if pulled from nodeDict
+    sorted_prepostvisit  = sorted(prepostvisit.items(), key=operator.itemgetter(1))
+    for edge in sorted_prepostvisit:
+        ordered_edges.append(str(edge[0]))
+    
+    ordered_edges.reverse()
+    # print(ordered_edges)
+
+    # Set G back to the unreversed graph
+    G = graph.nodeDict()
+
     # DFS through Gr to find highest reverse post number
-    while len(unvisited) > 0:
+    for edge in ordered_edges:
 
         # Save visited before the search
         saved_visited = visited.copy()
 
-        unvisited -= visited
-        explore(unvisited.pop())
+        if edge not in visited:
+            explore(edge)
 
         # Find out which nodes were discovered in this component, store them
         # and their post visits in a considered posts
@@ -73,7 +97,6 @@ def directedConnectedness(graph):
         # Quick check to see if this yields any connected components
         if len(this_run) < 1:
             continue
-
         considered_posts = {}
 
         # And a check here to see if this node even got a post visit
@@ -91,17 +114,17 @@ def directedConnectedness(graph):
 
 def depthFirstSearch(graph):
     ''' Perform a Depth First Search on G '''
-
+    global visited
     resetGlobals()   
+    
     # Create a set of all nodes in G
-    unvisited = set(graph.getNodes())
+    unvisited = graph.getNodes()
 
     # Continue to DFS on arbitrary element until all elements are visited   
-    while len(unvisited) > 0 :
-        unvisited -= visited
-        explore(unvisited.pop())
+    for edge in unvisited:
+        if edge not in visited:
+            explore(edge)
     
-
     return Nobjects.Network(None, visited, previsit, postvisit)
 
 
@@ -123,6 +146,7 @@ def explore(v):
     global visited
     global layer
     global G
+    global prepostvisit
 
     # Mark v as visited   
     layer = layer + 1
@@ -135,9 +159,8 @@ def explore(v):
         # Check to see if we've already visited v , or if it even has any edges
         # out of it 
         if edge not in visited and edge in G:
-                
-                #It has edges, go one layer deeper
-               explore(edge)
+            #It has edges, go one layer deeper
+            explore(edge)
 
     layer = layer-1
     setPostvisit(int(v))
@@ -162,12 +185,12 @@ dset = Nobjects.Graph(datapath)
 
 # Store the dictionary representation of our graph globally
 G = dset.nodeDict()
-Gr = dset.nodeDict(True)
 influencers = dset.findInfluencers("out")
 
 # Gather a list of sinks in this graph
-sinks = directedConnectedness(set)
+sinks = directedConnectedness(dset)
 print(sinks)
 print("SINKS: ", len(sinks))
+
 
 #dset.printEdges("T2.net")
