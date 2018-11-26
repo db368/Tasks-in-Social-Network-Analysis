@@ -34,8 +34,16 @@ class Network:
         return ("Node: " + (str)(self.source) + " Nodes visited: " + (str)(len(self.visited)))
 
 class Graph():
-    def __init__(self, input_file):
-        self.pullNodes(input_file)
+
+    def __init__(self, input_file = None, edges = [], nodes = []):
+        ''' Creates a new graph object from a list of edges and nodes, or a an
+            input file of the correct format '''
+        if not input_file is None:
+            self.pullNodes(input_file)
+        else:
+            self.edges = edges
+            self.nodes = nodes
+
 
     def pullNodes(self, f): # For task 2
         """Initializes node set and graph list from an input file"""
@@ -48,12 +56,11 @@ class Graph():
             text = open(f)
         except FileNotFoundError:
             print("The requested file could not be found!")
+            exit()
             return None
         
         edges = []
-        # The file exists, check to see what type of file it is: print("Filetype is:
-        # ", f[-3:])
-
+        
         # This is a text file
         if f[-3:] == "txt":
             for line in text.read().splitlines():
@@ -92,6 +99,7 @@ class Graph():
             if edge[1] not in nodes:
                 nodes.add(edge[1])
 
+        # Save sorted node and edge lists
         self.nodes = sorted(nodes)
         self.edges = sorted(edges, key=operator.itemgetter(0))
     
@@ -116,7 +124,7 @@ class Graph():
 
     
     def findInfluencers(self, foodegree): # For Task 3
-        ''' returns a list of sorted influencers using the specified degree '''
+        ''' Returns a list of sorted influencers using the specified degree '''
         
         # Initialize a dictionary from internal list of nodes
         nodes = dict.fromkeys(self.nodes, 0)
@@ -146,6 +154,7 @@ class Graph():
 
     def getReversedEdges(self):
         ''' Returns a reversed list of edges GR '''
+        
         reversed_edges = []
         for i in range(0, len(self.edges)):
             # Store Edge
@@ -156,11 +165,24 @@ class Graph():
             edge[0] = edge[1]
             edge[1] = temp
 
-            # Replace
+            # Append
             reversed_edges.append(edge)
-
+        
+        #Sort new list of edges then return
         return sorted(reversed_edges, key=operator.itemgetter(0))
     
+    def cleanGraph(self, component):
+        ''' Creates a new graph object only conatining nodes and edges present in component '''
+       # Sort list of nodes
+        newnodes = sorted(component)
+
+        # Only append edges to nodes that exist in newnodes
+        newedges = []
+        for edge in self.edges:
+            if edge[0] in newnodes and edge[1] in newnodes:
+                newedges.append(edge)
+        return Graph(None, newedges, sorted(newnodes, key=operator.itemgetter(0)))
+
     def printEdges(self, filename):
         G = nx.convert.from_edgelist(self.edges, nx.MultiDiGraph)
         nx.write_pajek(G, filename)

@@ -117,8 +117,7 @@ def findSinks(graph):
         if edge not in visited:
             explore(edge, False)
 
-        # Find out which nodes were discovered in this component, store them
-        # and their post visits in a considered posts
+        # Find out which nodes were discovered in this component
         this_run = visited-saved_visited
         
         # Quick check to see if this yields any connected components
@@ -126,7 +125,7 @@ def findSinks(graph):
             continue
         considered_posts = {}
 
-        # And a check here to see if this node even got a post visit
+        # Add this node and its post to "considered posts"
         for node in this_run:
             considered_posts[int(node)] = postvisit[int(node)]
 
@@ -146,11 +145,12 @@ def depthFirstSearch(graph):
     # Create a set of all nodes in G
     unvisited = graph.getNodes()
 
-    # Continue to DFS on arbitrary element until all elements are visited   
+    # Continue to DFS on next element in stack until all edges are unvisited
     for edge in unvisited:
         if edge not in visited:
                 explore(edge)
-    
+
+    # Return network object
     return Nobjects.Network(None, visited, previsit, postvisit)
 
 def beginExploration(n):
@@ -173,14 +173,11 @@ def explore(v, directed = True):
     global Gr
     global prepostvisit
 
-    # Mark v as visited   
+    # Mark v as visited
     layer = layer + 1
     visited.add(v)
     setPrevisit(int(v))
 
-    # if not directed:   
-    #    print("EXPLORING: ", v, "LAYER:", layer)
-   
     # Add all foward edges
     edges = []
     if v in G:
@@ -194,21 +191,16 @@ def explore(v, directed = True):
     # Iterate through our list of edges, check if we've visited them, if not: explore
     for edge in edges:
         if edge not in visited:
-            #It has edges, go one layer deeper
             try:
                 explore(edge, directed)
             except (RecursionError, RuntimeError, OverflowError) as exc:
                 print("Max recursion reached on node " + v)
                 gracefulFailure(edges, exc)
                 exit()
-                
-
-
-    # Increment layer, and set postvisit
+               
+    # Set postvisit, return visited
     layer = layer-1
     setPostvisit(int(v))
-    
-    # Return visited edges
     return visited
 
 def cleanNetwork(graph): # Task 4
@@ -222,7 +214,14 @@ def cleanNetwork(graph): # Task 4
     resetGlobals()
     cleaned_network = explore(str(sinks[-1][0]))
 
-    return cleaned_network
+    # Convert these to strings to match other nodelists
+    newcomponent = []
+    for node in cleaned_network:
+        newcomponent.append(str(node))
+
+
+    # Clean the graph object
+    return graph.cleanGraph(sorted(newcomponent))
 
 
 # Forgive me.
@@ -238,6 +237,6 @@ influencers = dset.findInfluencers("out")
 
 # Gather a list of sinks in this graph
 print("NETWORK IS CLEAN")
-print(cleanNetwork(dset))
+cleanNetwork(dset).printEdges("cleaned.net")
 
 #dset.printEdges("T2.net"
