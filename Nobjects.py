@@ -158,7 +158,8 @@ class Graph():
 
             # Replace
             reversed_edges.append(edge)
-        return reversed_edges
+
+        return sorted(reversed_edges, key=operator.itemgetter(0))
     
     def printEdges(self, filename):
         G = nx.convert.from_edgelist(self.edges, nx.MultiDiGraph)

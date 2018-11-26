@@ -1,11 +1,14 @@
 import operator
 import sys
 import Nobjects
+import os
 
-#datapath = "datasets/friendship.txt"
+# datapath = "datasets/friendship.txt"
 datapath = "datasets/Wiki-Vote.txt"
-#datapath = "datasets/soc-Epinions1.txt"
+# datapath = "datasets/soc-Epinions1.txt"
+# datapath = "datasets/tvshow_edges.csv"
 
+debugpath = "crash.txt"
 visited = set()
 layer = 0
 
@@ -16,6 +19,30 @@ clock = None
 postvisit = None
 visited = None
 prepostvisit = None
+
+def gracefulFailure(edges, excepted):
+    ''' Writes all relevant information to a log file at <datapath>-crash.txt'''
+    
+    global visited    # A set of all visited nodes
+    global layer     # Recursion Depth for Debug Purposes
+    global previsit  # The previsit numbers of a all nodes
+    global postvisit # The post visit values of all nodes
+    global clock     # One clock for both
+    global G
+    global datapath
+    
+    print(excepted)
+    debugpath = datapath.replace(".txt", '').replace("datasets/", '') + "-crash.txt"
+    f = open(debugpath, "w")
+    f.write("NODE COUNT: " + str(len(G.keys())) + '\n')
+    f.write("LAYER: " + str(layer) + '\n')
+    f.write("VISITED: " + str(len(visited)) + '\n' +  str(sorted(visited))+ '\n')
+    f.write("POSTVISIT: " + str(len(postvisit)) +  '\n' +  str(postvisit)+ '\n')
+    f.write("PREVISIT: " + str(len(previsit)) +  '\n' +  str(previsit)+ '\n')
+    f.write("CLOCK:" + str(clock)+ '\n')
+    f.write("EDGES IN STACK:" + '\n' + str(edges)+ '\n')
+    f.close()
+    print("Log file created at:", debugpath)
 
 def setPrevisit(node):
     ''' Sets the previsit value for the specified node during a traversal '''
@@ -47,8 +74,8 @@ def resetGlobals():
     layer = 0 # Reset Recursion Depth
 
 
-def directedConnectedness(graph):
-    ''' Returns all strongly connected components of a given node '''
+def findSinks(graph):
+    ''' Returns all sink nodes  '''
     
     global G
     global prepostvisit
@@ -77,7 +104,6 @@ def directedConnectedness(graph):
         ordered_edges.append(str(edge[0]))
     
     ordered_edges.reverse()
-    # print(ordered_edges)
 
     # Set G back to the unreversed graph
     G = graph.nodeDict()
@@ -104,7 +130,6 @@ def directedConnectedness(graph):
         for node in this_run:
             considered_posts[int(node)] = postvisit[int(node)]
 
-
         # Sort this and pull the highest post number, which should be our sink
         highest_postvisit = sorted(considered_posts.items(), key=operator.itemgetter(1))
 
@@ -114,7 +139,7 @@ def directedConnectedness(graph):
     return sinks
 
 def depthFirstSearch(graph):
-    ''' Perform a Depth First Search on G '''
+    ''' Perform a Depth First Search on graph. Return a Network Object. '''
     global visited
     resetGlobals()   
     
@@ -124,11 +149,9 @@ def depthFirstSearch(graph):
     # Continue to DFS on arbitrary element until all elements are visited   
     for edge in unvisited:
         if edge not in visited:
-            explore(edge)
+                explore(edge)
     
     return Nobjects.Network(None, visited, previsit, postvisit)
-
-
 
 def beginExploration(n):
     """ Takes in a Node n, then returns all connected nodes """
@@ -147,33 +170,44 @@ def explore(v, directed = True):
     global visited
     global layer
     global G
+    global Gr
     global prepostvisit
 
     # Mark v as visited   
     layer = layer + 1
     visited.add(v)
     setPrevisit(int(v))
-     
-    # If it's directed, edge ordering doesn't matter, add all edges that
-    # link to v
+
+    # if not directed:   
+    #    print("EXPLORING: ", v, "LAYER:", layer)
+   
+    # Add all foward edges
     edges = []
     if v in G:
         edges += G[v]
 
+    # Add reversed edges as well if this is undirected
     if not directed: 
-        for key in G.keys():
-            if ((v in G[key]) and (key not in visited)) and (key not in edges) and v != key:
-                edges += key
+        if v in Gr:
+            edges += Gr[v]
 
-    # Iterate through all edges
+    # Iterate through our list of edges, check if we've visited them, if not: explore
     for edge in edges:
-        # Check to see if we've already visited v
         if edge not in visited:
             #It has edges, go one layer deeper
-            explore(edge, directed)
+            try:
+                explore(edge, directed)
+            except (RecursionError, RuntimeError, OverflowError) as exc:
+                print("Max recursion reached on node " + v)
+                gracefulFailure(edges, exc)
+                exit()
+                
 
+
+    # Increment layer, and set postvisit
     layer = layer-1
     setPostvisit(int(v))
+    
     # Return visited edges
     return visited
 
@@ -182,7 +216,7 @@ def cleanNetwork(graph): # Task 4
     to each other. '''
     
     # First, find all sinks
-    sinks = sorted(directedConnectedness(graph), key=operator.itemgetter(1))
+    sinks = sorted(findSinks(graph), key=operator.itemgetter(1))
 
     # Next, explore to find all connected nodes
     resetGlobals()
@@ -190,14 +224,20 @@ def cleanNetwork(graph): # Task 4
 
     return cleaned_network
 
+
+# Forgive me.
+sys.setrecursionlimit(5000)
+
 # Generate a graph from our specified Text file
 dset = Nobjects.Graph(datapath)
 
 # Store the dictionary representation of our graph globally
 G = dset.nodeDict()
+Gr = dset.nodeDict(True)
 influencers = dset.findInfluencers("out")
 
 # Gather a list of sinks in this graph
+print("NETWORK IS CLEAN")
 print(cleanNetwork(dset))
 
-#dset.printEdges("T2.net")
+#dset.printEdges("T2.net"
