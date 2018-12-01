@@ -33,6 +33,14 @@ class Network:
     def __str__(self):
         return ("Node: " + (str)(self.source) + " Nodes visited: " + (str)(len(self.visited)))
 
+    def writeVisits(self, filepath):
+        ''' Writes pre/postvisits in a csv format at filepath'''
+        f = open(filepath, 'w')
+        f.write('NODE, Previsit, Postvisit\n')
+        for key in self.previsit:
+            f.write(key + ',' + str(self.previsit[key]) + ',' + str(self.postvisit[key]) + '\n')
+        f.close
+
 class Graph():
 
     def __init__(self, input_file = None, edges = [], nodes = []):
@@ -112,9 +120,9 @@ class Graph():
 
         # Allow for a dict of reversed edges
         if reversed:
-            edges = self.getReversedEdges()
+            edges = self.getReversedEdges().copy()
         else:
-            edges = self.edges
+            edges = self.edges.copy()
 
         # Iterate through list of edges
         for edge in edges:
@@ -158,7 +166,7 @@ class Graph():
         reversed_edges = []
         for i in range(0, len(self.edges)):
             # Store Edge
-            edge = self.edges[i]
+            edge = self.edges[i].copy()
             
             # Swap 
             temp = edge[0]

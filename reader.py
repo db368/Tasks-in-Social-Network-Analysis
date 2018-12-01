@@ -4,13 +4,11 @@ import Nobjects
 import os
 
 # datapath = "datasets/friendship.txt"
-datapath = "datasets/Wiki-Vote.txt"
-# datapath = "datasets/soc-Epinions1.txt"
+# datapath = "datasets/Wiki-Vote.txt"
+datapath = "datasets/soc-Epinions1.txt"
 # datapath = "datasets/tvshow_edges.csv"
 
 debugpath = "crash.txt"
-visited = set()
-layer = 0
 
 # Define Global Vairables
 layer = None
@@ -19,6 +17,8 @@ clock = None
 postvisit = None
 visited = None
 prepostvisit = None
+G = None
+Gr = None
 
 def gracefulFailure(edges, excepted):
     ''' Writes all relevant information to a log file at <datapath>-crash.txt'''
@@ -58,34 +58,41 @@ def setPostvisit(node):
     postvisit[node] = clock
     clock += 1 
 
-def resetGlobals():
-    ''' Resets globals to ready for an exploration '''
+def resetGlobals(graph = None):
+    ''' Resets globals to ready for an exploration, optinally can set G 
+        as a dictionary from the provided graph '''
     global visited    # A set of all visited nodes
     global layer     # Recursion Depth for Debug Purposes
     global previsit  # The previsit numbers of a all nodes
     global postvisit # The post visit values of all nodes
     global clock     # One clock for both
+    global G
+    global Gr
 
-
+    if not graph is None:
+        G = graph.nodeDict()
+        Gr = graph.nodeDict(True)
+    
     previsit = {}
     postvisit = {}
     clock = 0
     visited = set() # Reset visited nodes
-    layer = 0 # Reset Recursion Depth
+layer = 0 # Reset Recursion Depth
 
-
-def findSinks(graph):
+def findSinks(graph, print_state = False):
     ''' Returns all sink nodes  '''
     
     global G
+    global Gr
     global prepostvisit
     global postvisit
     global visited
-    resetGlobals()
+    resetGlobals(graph)
     
     # Manually reset prepost visit
     prepostvisit = {}
-    
+
+    # Reverse G   
     G = graph.nodeDict(True)
 
     # Initialize sets
@@ -93,11 +100,16 @@ def findSinks(graph):
     sinks = []
     
     # First, Run through a depth first search and store results
-    idfs = depthFirstSearch(graph)
+    if print_state:
+        print("----Running on Gr---")
+    idfs = depthFirstSearch(graph, print_state)
     prepostvisit = idfs.getPrevisit().copy()
     resetGlobals()
 
     ordered_edges = []
+
+    G = graph.nodeDict()
+
     # Format list to be as if pulled from nodeDict
     sorted_prepostvisit  = sorted(prepostvisit.items(), key=operator.itemgetter(1))
     for edge in sorted_prepostvisit:
@@ -105,29 +117,33 @@ def findSinks(graph):
     
     ordered_edges.reverse()
 
-    # Set G back to the unreversed graph
-    G = graph.nodeDict()
+
+    if print_state:
+        print("Running on G with postordering")
 
     # DFS through Gr to find highest reverse post number
     for edge in ordered_edges:
-
-        # Save visited before the search
+        
+        # Store previously visited nodes for comparison
         saved_visited = visited.copy()
 
+        # See how many nodes are connected to this 
         if edge not in visited:
-            explore(edge, False)
+            print("->", edge)
+            explore(edge, False, True)
 
-        # Find out which nodes were discovered in this component
-        this_run = visited-saved_visited
-        
+        # Isolate nodes found during last search
+        this_run = visited - saved_visited
+
         # Quick check to see if this yields any connected components
         if len(this_run) < 1:
             continue
         considered_posts = {}
 
+
         # Add this node and its post to "considered posts"
         for node in this_run:
-            considered_posts[int(node)] = postvisit[int(node)]
+            considered_posts[node] = postvisit[node]
 
         # Sort this and pull the highest post number, which should be our sink
         highest_postvisit = sorted(considered_posts.items(), key=operator.itemgetter(1))
@@ -137,33 +153,25 @@ def findSinks(graph):
 
     return sinks
 
-def depthFirstSearch(graph):
+def depthFirstSearch(graph, print_steps = False):
     ''' Perform a Depth First Search on graph. Return a Network Object. '''
     global visited
     resetGlobals()   
-    
+
     # Create a set of all nodes in G
     unvisited = graph.getNodes()
 
     # Continue to DFS on next element in stack until all edges are unvisited
     for edge in unvisited:
         if edge not in visited:
-                explore(edge)
+                if print_steps:
+                    print("->", edge)
+                explore(edge, True, print_steps)
 
-    # Return network object
     return Nobjects.Network(None, visited, previsit, postvisit)
 
-def beginExploration(n):
-    """ Takes in a Node n, then returns all connected nodes """
-    
-    resetGlobals()
-    # Explore the given node
-    explore(n)
 
-    C = Nobjects.Network(n, visited, previsit, postvisit)
-    return C
-
-def explore(v, directed = True):
+def explore(v, directed = True, print_steps = False):
     """ Returns nodes connected to N """
     
     # Define Global Variables
@@ -176,7 +184,7 @@ def explore(v, directed = True):
     # Mark v as visited
     layer = layer + 1
     visited.add(v)
-    setPrevisit(int(v))
+    setPrevisit(v)
 
     # Add all foward edges
     edges = []
@@ -191,8 +199,10 @@ def explore(v, directed = True):
     # Iterate through our list of edges, check if we've visited them, if not: explore
     for edge in edges:
         if edge not in visited:
+            if print_steps:
+                print(v, "->", edge)
             try:
-                explore(edge, directed)
+                explore(edge, directed, print_steps)
             except (RecursionError, RuntimeError, OverflowError) as exc:
                 print("Max recursion reached on node " + v)
                 gracefulFailure(edges, exc)
@@ -200,7 +210,7 @@ def explore(v, directed = True):
                
     # Set postvisit, return visited
     layer = layer-1
-    setPostvisit(int(v))
+    setPostvisit(v)
     return visited
 
 def cleanNetwork(graph): # Task 4
@@ -224,19 +234,23 @@ def cleanNetwork(graph): # Task 4
     return graph.cleanGraph(sorted(newcomponent))
 
 
+
+
 # Forgive me.
 sys.setrecursionlimit(5000)
 
 # Generate a graph from our specified Text file
-dset = Nobjects.Graph(datapath)
+#dset = Nobjects.Graph(datapath)
 
 # Store the dictionary representation of our graph globally
-G = dset.nodeDict()
-Gr = dset.nodeDict(True)
-influencers = dset.findInfluencers("out")
+#G = dset.nodeDict()
+#Gr = dset.nodeDict(True)
+#influencers = dset.findInfluencers("out")
 
 # Gather a list of sinks in this graph
-print("NETWORK IS CLEAN")
-cleanNetwork(dset).printEdges("cleaned.net")
+#print("NETWORK IS CLEAN")
+#cleanNetwork(dset).printEdges("cleaned.net")
 
-#dset.printEdges("T2.net"
+# Explore all nodes connected to the biggest influencer
+# network = beginExploration(influencers[0][0])
+# print("VISITED NODES", network)
