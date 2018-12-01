@@ -56,8 +56,9 @@ class Test_TestGraphFunctions(unittest.TestCase):
         G = Nobjects.Graph(None, edges2, nodes)
 
 
-        N = reader.findSinks(G)[0]
-        assert N[0] == 'H' and N[1] == 10
+        N = list(reader.findSinks(G).keys())
+        
+        assert N[0] == 'H'
         
 if __name__ == '__main__':
     unittest.main()

@@ -25,7 +25,6 @@ def gracefulFailure(edges, excepted):
     global postvisit # The post visit values of all nodes
     global clock     # One clock for both
     global G
-    global datapath
     
     print(excepted)
     f = open(debugpath, "w")
@@ -56,7 +55,7 @@ def setPostvisit(node):
 def resetGlobals(graph = None):
     ''' Resets globals to ready for an exploration, optinally can set G 
         as a dictionary from the provided graph '''
-    global visited    # A set of all visited nodes
+    global visited   # A set of all visited nodes
     global layer     # Recursion Depth for Debug Purposes
     global previsit  # The previsit numbers of a all nodes
     global postvisit # The post visit values of all nodes
@@ -92,7 +91,7 @@ def findSinks(graph, print_state = False):
 
     # Initialize sets
     this_run = set()
-    sinks = []
+    sinks = {}
     
     # First, Run through a depth first search and store results
     if print_state:
@@ -144,8 +143,8 @@ def findSinks(graph, print_state = False):
         # Sort this and pull the highest post number, which should be our sink
         highest_postvisit = sorted(considered_posts.items(), key=operator.itemgetter(1))
 
-        # Append a tuple of (node, size of component)
-        sinks.append((highest_postvisit[-1][0], len(considered_posts)))
+        # Append a 
+        sinks[highest_postvisit[-1][0]] = this_run - set([highest_postvisit[-1][0]])
 
     return sinks
 
@@ -199,7 +198,7 @@ def explore(v, directed = True, print_steps = False):
                 print(str(v), "->", edge)
             try:
                 explore(edge, directed, print_steps)
-            except (RecursionError, RuntimeError, OverflowError) as exc:
+            except (RecursionError, RuntimeError, OverflowError, MemoryError) as exc:
                 print("Max recursion reached on node " + str(v))
                 gracefulFailure(edges, exc)
                 exit()
@@ -209,44 +208,5 @@ def explore(v, directed = True, print_steps = False):
     setPostvisit(v)
     return visited
 
-def cleanNetwork(graph): # Task 4
-    '''Report nodes that are either disconnected, or only have some connections
-    to each other. '''
-    
-    # First, find all sinks
-    sinks = sorted(findSinks(graph), key=operator.itemgetter(1))
-
-    # Next, explore to find all connected nodes
-    resetGlobals()
-    cleaned_network = explore(str(sinks[-1][0]))
-
-    # Convert these to strings to match other nodelists
-    newcomponent = []
-    for node in cleaned_network:
-        newcomponent.append(str(node))
-
-
-    # Clean the graph object
-    return graph.cleanGraph(sorted(newcomponent))
-
-
-
-
 # Forgive me.
-sys.setrecursionlimit(5000)
-
-# Generate a graph from our specified Text file
-#dset = Nobjects.Graph(datapath)
-
-# Store the dictionary representation of our graph globally
-#G = dset.nodeDict()
-#Gr = dset.nodeDict(True)
-#influencers = dset.findInfluencers("out")
-
-# Gather a list of sinks in this graph
-#print("NETWORK IS CLEAN")
-#cleanNetwork(dset).printEdges("cleaned.net")
-
-# Explore all nodes connected to the biggest influencer
-# network = beginExploration(influencers[0][0])
-# print("VISITED NODES", network)
+sys.setrecursionlimit(8192)
