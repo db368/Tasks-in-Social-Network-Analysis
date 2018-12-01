@@ -3,11 +3,6 @@ import sys
 import Nobjects
 import os
 
-# datapath = "datasets/friendship.txt"
-# datapath = "datasets/Wiki-Vote.txt"
-datapath = "datasets/soc-Epinions1.txt"
-# datapath = "datasets/tvshow_edges.csv"
-
 debugpath = "crash.txt"
 
 # Define Global Vairables
@@ -19,6 +14,7 @@ visited = None
 prepostvisit = None
 G = None
 Gr = None
+
 
 def gracefulFailure(edges, excepted):
     ''' Writes all relevant information to a log file at <datapath>-crash.txt'''
@@ -32,7 +28,6 @@ def gracefulFailure(edges, excepted):
     global datapath
     
     print(excepted)
-    debugpath = datapath.replace(".txt", '').replace("datasets/", '') + "-crash.txt"
     f = open(debugpath, "w")
     f.write("NODE COUNT: " + str(len(G.keys())) + '\n')
     f.write("LAYER: " + str(layer) + '\n')
@@ -77,7 +72,7 @@ def resetGlobals(graph = None):
     postvisit = {}
     clock = 0
     visited = set() # Reset visited nodes
-layer = 0 # Reset Recursion Depth
+    layer = 0 # Reset Recursion Depth
 
 def findSinks(graph, print_state = False):
     ''' Returns all sink nodes  '''
@@ -113,7 +108,7 @@ def findSinks(graph, print_state = False):
     # Format list to be as if pulled from nodeDict
     sorted_prepostvisit  = sorted(prepostvisit.items(), key=operator.itemgetter(1))
     for edge in sorted_prepostvisit:
-        ordered_edges.append(str(edge[0]))
+        ordered_edges.append(edge[0])
     
     ordered_edges.reverse()
 
@@ -129,8 +124,9 @@ def findSinks(graph, print_state = False):
 
         # See how many nodes are connected to this 
         if edge not in visited:
-            print("->", edge)
-            explore(edge, False, True)
+            if print_state:
+                print("->", edge)
+            explore(edge, False, False)
 
         # Isolate nodes found during last search
         this_run = visited - saved_visited
@@ -200,11 +196,11 @@ def explore(v, directed = True, print_steps = False):
     for edge in edges:
         if edge not in visited:
             if print_steps:
-                print(v, "->", edge)
+                print(str(v), "->", edge)
             try:
                 explore(edge, directed, print_steps)
             except (RecursionError, RuntimeError, OverflowError) as exc:
-                print("Max recursion reached on node " + v)
+                print("Max recursion reached on node " + str(v))
                 gracefulFailure(edges, exc)
                 exit()
                

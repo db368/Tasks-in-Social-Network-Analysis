@@ -82,17 +82,24 @@ class Graph():
                 l = line.split()
 
                 # Add this to our list as a tuple
-                edges.append([l[0], l[1]])
+                edges.append([int(l[0]), int(l[1])])
 
         #This is a CSV
         elif f[-3:] == "csv":
-            for line in text.read().split():
-                
+            for line in text.read().split()[1:]:
+                edge = []
                 # Split again by comma
                 l = line.split(",")
 
+                # If non-integers are conained in these cells, store them as strings
+                try:
+                    edge= [int(l[0]), int(l[1])]
+                except ValueError:
+                    edge = [l[0], l[1]]
+                    continue
+
                 #Add this edge to our list as a tuple
-                edges.append([l[0], l[1]])
+                edges.append(edge)
             
             # Remove the headerline from out list of edges
             edges.pop(0)
@@ -109,7 +116,8 @@ class Graph():
 
         # Save sorted node and edge lists
         self.nodes = sorted(nodes)
-        self.edges = sorted(edges, key=operator.itemgetter(0))
+        self.edges = sorted(edges, key=operator.itemgetter(1))
+        self.edges = sorted(self.edges, key=operator.itemgetter(0))
     
     def nodeDict(self, reversed = False):     
         """ Returns graph as a dictionary, where each key is a node, and its value is a
