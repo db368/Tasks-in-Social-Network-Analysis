@@ -1,14 +1,16 @@
 import operator
 import networkx as nx
 
-class Network:
-    ''' A collection of results for a search on a node'''
+class Results:
+    ''' A collection of results for a search in a graph '''
     
-    def __init__(self, source = None, visited = set(), previsit = {}, postvisit = {}):
+    def __init__(self, source = None, visited = set(), previsit = {}, postvisit = {}, weak = [], strong = {}):
         self.source = source       # Root Node
         self.previsit = previsit   # Previsits
         self.postvisit = postvisit # Postvisits
         self.visited = visited     # A set of all visited nodes
+        self.strong_components = strong
+        self.components = weak
         self.clock = 0
 
     def addPostVisit(self, node):
@@ -30,9 +32,20 @@ class Network:
     def getVisited(self):
         return self.visited
 
+    def setStronglyConnectedComponents(self, components):
+        self.strong_components = components.copy()
+
+    def getConnectedComponents(self):
+        ''' Returns an array of weakly connected components '''
+        return self.components
+
+    def getStronglyConnectedComponents(self):
+        ''' Returns an array of strongly connected components'''
+        return self.strong_components
+
     def __str__(self):
         return ("Node: " + (str)(self.source) + " Nodes visited: " + (str)(len(self.visited)))
-
+    
     def writeVisits(self, filepath):
         ''' Writes pre/postvisits in a csv format at filepath'''
         f = open(filepath, 'w')
@@ -75,7 +88,6 @@ class Graph():
                 
                 # Some text files have notes at the top, ignore it if so
                 if not line[0].isdigit():
-                    # print("Ignoring ", line)
                     continue
 
                 # Split line by whitespace
@@ -121,7 +133,7 @@ class Graph():
     
     def nodeDict(self, reversed = False):     
         """ Returns graph as a dictionary, where each key is a node, and its value is a
-        list of edges out of it. If Reverse is specified, return a list of reversed 
+        list of edges out of it. If Reverse is specified, return a dict of reversed 
         edges GR. """
         
         nodes = {key:[] for key in self.nodes}

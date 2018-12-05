@@ -73,8 +73,9 @@ def resetGlobals(graph = None):
     visited = set() # Reset visited nodes
     layer = 0 # Reset Recursion Depth
 
-def findSinks(graph, print_state = False):
-    ''' Returns all sink nodes  '''
+def stronglyConnectedComponents(graph, print_state = False):
+    ''' Returns all strongly connected components in a directed graph as a
+        dictionary of (sink:component)'''
     
     global G
     global Gr
@@ -83,87 +84,76 @@ def findSinks(graph, print_state = False):
     global visited
     resetGlobals(graph)
     
-    # Manually reset prepost visit
+    # Manually reset prepost visit and reverse G
     prepostvisit = {}
-
-    # Reverse G   
     G = graph.nodeDict(True)
-
-    # Initialize sets
-    this_run = set()
-    sinks = {}
+    ordered_edges = []
     
     # First, Run through a depth first search and store results
     if print_state:
         print("----Running on Gr---")
     idfs = depthFirstSearch(graph, print_state)
-    prepostvisit = idfs.getPrevisit().copy()
-    resetGlobals()
+    prepostvisit = idfs.getPostvisit().copy()
 
-    ordered_edges = []
-
-    G = graph.nodeDict()
-
-    # Format list to be as if pulled from nodeDict
+    # Order nodes by the post visit of the previous search
     sorted_prepostvisit  = sorted(prepostvisit.items(), key=operator.itemgetter(1))
-    for edge in sorted_prepostvisit:
-        ordered_edges.append(edge[0])
-    
+    ordered_edges = [edge[0] for edge in sorted_prepostvisit]
     ordered_edges.reverse()
-
-
+    
+    # Run undirected DFS using post visit ordering
     if print_state:
         print("Running on G with postordering")
+    G = graph.nodeDict()
 
-    # DFS through Gr to find highest reverse post number
-    for edge in ordered_edges:
-        
-        # Store previously visited nodes for comparison
-        saved_visited = visited.copy()
+    post_search = depthFirstSearch(graph, print_state, False, ordered_edges)
+    return post_search
 
-        # See how many nodes are connected to this 
-        if edge not in visited:
-            if print_state:
-                print("->", edge)
-            explore(edge, False, False)
-
-        # Isolate nodes found during last search
-        this_run = visited - saved_visited
-
-        # Quick check to see if this yields any connected components
-        if len(this_run) < 1:
-            continue
-        considered_posts = {}
-
-
-        # Add this node and its post to "considered posts"
-        for node in this_run:
-            considered_posts[node] = postvisit[node]
-
-        # Sort this and pull the highest post number, which should be our sink
-        highest_postvisit = sorted(considered_posts.items(), key=operator.itemgetter(1))
-
-        # Append a 
-        sinks[highest_postvisit[-1][0]] = this_run - set([highest_postvisit[-1][0]])
-
-    return sinks
-
-def depthFirstSearch(graph, print_steps = False):
-    ''' Perform a Depth First Search on graph. Return a Network Object. '''
+def depthFirstSearch(graph, print_steps = False, directed = True, order = []):
+    ''' Perform a Depth First Search on graph. Returns a Network Object
+        complete with previsit, postvisit, and components. If directed
+        is set to false, the dfs will treat the graph as undirected. If
+        order is specified, the DFS will search through nodes in the 
+        specified order, otherwise it will search in alphabetical order.'''
+    global postvisit
     global visited
-    resetGlobals()   
+    global G
+    if G is None:
+        resetGlobals(graph)   
+    else:
+        resetGlobals()
 
-    # Create a set of all nodes in G
-    unvisited = graph.getNodes()
+    # See if order is set, if not grab ordering from the graph   
+    if len(order) == 0:
+        unvisited = graph.getNodes()
+    else:
+        unvisited = order
 
     # Continue to DFS on next element in stack until all edges are unvisited
+    components = []
     for edge in unvisited:
-        if edge not in visited:
-                if print_steps:
-                    print("->", edge)
-                explore(edge, True, print_steps)
+        saved_visited = visited.copy()
 
-    return Nobjects.Network(None, visited, previsit, postvisit)
+        # Perform Search
+        if edge not in visited:
+            if print_steps:
+                print("->", edge)
+            explore(edge, directed, print_steps)
+        else:
+            continue
+        # Seperate newly found components
+        this_run = visited - saved_visited
+
+        # Create a list of tuples (node, post#,  sort by post number, then
+        # generate a new list of only nodes and append to components
+        considered_posts = []
+        for node in this_run:
+            considered_posts.append((node, postvisit[node]))
+        sorted_pairs = sorted(considered_posts, key=operator.itemgetter(1), reverse=True)
+        sorted_nodes = [pair[0] for pair in sorted_pairs]
+        components.append(sorted_nodes)
+
+    # Return final product
+    return Nobjects.Results(None, visited, previsit, postvisit, components)
 
 
 def explore(v, directed = True, print_steps = False):
@@ -181,7 +171,7 @@ def explore(v, directed = True, print_steps = False):
     visited.add(v)
     setPrevisit(v)
 
-    # Add all foward edges
+    # Add all forward edges
     edges = []
     if v in G:
         edges += G[v]

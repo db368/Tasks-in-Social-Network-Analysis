@@ -3,22 +3,24 @@ import Nobjects
 import operator
 
 # datapath = "datasets/friendship.txt"
-datapath = "datasets/Wiki-Vote.txt"
-# datapath = "datasets/soc-Epinions1.txt"
 # datapath = "datasets/tvshow_edges.csv"
+datapath = "datasets/Wiki-Vote.txt"
+# datapath = "datasets/soc-Epinions1.txt" 
 
 dset = Nobjects.Graph(datapath)
-S = reader.findSinks(dset)
-print(S)
+strong = reader.stronglyConnectedComponents(dset).getConnectedComponents()
+weak = reader.depthFirstSearch(dset, False, False).getConnectedComponents()
 
-f = open("Output of thing.txt", 'w')
-for key in list(S.keys()):
-    st = "SINK: " + str(key) + '\n'
-    st += "NODES: "
-    nodes = list(S[key])
-    for node in nodes:
+print(weak)
+
+
+f = open("Output.txt", 'w')
+print("Components: " + str(len(weak)))
+for component in list(weak):
+    st = "NODES: "
+    for node in component:
         st += str(node)
-        if node != nodes[-1]:
+        if node != component[-1]:
             st += ", "
     st += "\n ------------------------\n\n"
     f.write(st)

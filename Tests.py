@@ -56,9 +56,10 @@ class Test_TestGraphFunctions(unittest.TestCase):
         G = Nobjects.Graph(None, edges2, nodes)
 
 
-        N = list(reader.findSinks(G).keys())
-        
-        assert N[0] == 'H'
+        read =  reader.stronglyConnectedComponents(G)
+        N =  read.getConnectedComponents()
+        print(read.getPostvisit())
+        assert N[0][0] == 'H'
         
 if __name__ == '__main__':
     unittest.main()
