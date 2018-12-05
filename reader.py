@@ -5,6 +5,9 @@ import os
 
 debugpath = "crash.txt"
 
+# Forgive me.
+sys.setrecursionlimit(8192)
+
 # Define Global Vairables
 layer = None
 previsit = None
@@ -105,7 +108,7 @@ def stronglyConnectedComponents(graph, print_state = False):
         print("Running on G with postordering")
     G = graph.nodeDict()
 
-    post_search = depthFirstSearch(graph, print_state, False, ordered_edges)
+    post_search = depthFirstSearch(graph, print_state, True, ordered_edges)
     return post_search
 
 def depthFirstSearch(graph, print_steps = False, directed = True, order = []):
@@ -198,5 +201,3 @@ def explore(v, directed = True, print_steps = False):
     setPostvisit(v)
     return visited
 
-# Forgive me.
-sys.setrecursionlimit(8192)

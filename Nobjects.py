@@ -1,5 +1,5 @@
 import operator
-import networkx as nx
+# import networkx as nx
 
 class Results:
     ''' A collection of results for a search in a graph '''
@@ -98,11 +98,14 @@ class Graph():
 
         #This is a CSV
         elif f[-3:] == "csv":
-            for line in text.read().split()[1:]:
+            for line in text.read().split():
                 edge = []
-                # Split again by comma
+                
+                # Split again by comma and check if this is a header
                 l = line.split(",")
-
+                if line[0] is "node_1":
+                    continue
+                
                 # If non-integers are conained in these cells, store them as strings
                 try:
                     edge= [int(l[0]), int(l[1])]
@@ -112,9 +115,6 @@ class Graph():
 
                 #Add this edge to our list as a tuple
                 edges.append(edge)
-            
-            # Remove the headerline from out list of edges
-            edges.pop(0)
 
         # Close the textfile and return
         text.close()
@@ -211,6 +211,6 @@ class Graph():
                 newedges.append(edge)
         return Graph(None, newedges, sorted(newnodes, key=operator.itemgetter(0)))
 
-    def printEdges(self, filename):
-        G = nx.convert.from_edgelist(self.edges, nx.MultiDiGraph)
-        nx.write_pajek(G, filename)
+    # def printEdges(self, filename):
+    #     G = nx.convert.from_edgelist(self.edges, nx.MultiDiGraph)
+    #     nx.write_pajek(G, filename)
