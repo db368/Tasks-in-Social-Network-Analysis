@@ -60,6 +60,20 @@ class Test_TestGraphFunctions(unittest.TestCase):
         N =  read.getConnectedComponents()
         print(read.getPostvisit())
         assert N[0][0] == 'H'
+
+    def test_chain(self):
+        ''' Test if kchain can properly find the test chain in friendship.txt '''
+
+        # Load in friendship.txt, obtain chains from kChain
+        #G = Nobjects.Graph("datasets/Testset2.csv")
+        #chains = reader.kChain(3, 8, 5, G)
+        
+        G = Nobjects.Graph("datasets/politician_edges.csv")
+        chains = reader.kChain(503, 5065, 5, G)
+
+        # See if our test chain was found
+        print(chains)
+        assert chains is not None and len(chains) != 0
         
 if __name__ == '__main__':
     unittest.main()

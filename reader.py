@@ -195,9 +195,49 @@ def explore(v, directed = True, print_steps = False):
                 print("Max recursion reached on node " + str(v))
                 gracefulFailure(edges, exc)
                 exit()
-               
+
     # Set postvisit, return visited
     layer = layer-1
     setPostvisit(v)
     return visited
 
+
+    
+def kChain(P1, P2, k, G):
+    ''' Finds all k-length chains between node 1 and node 2 '''
+   
+    # Initialize chstom chain variables
+    global edgelist
+    edgelist = G.nodeDict()
+
+    
+    return chainSearch(P2, [], P1, k)
+
+def chainSearch(P2, chain, cnode, k):
+    ''' Search for a chain '''
+    global edgeList
+
+    chain.append(cnode)
+    # if we've only got one link left and there are no edges to it, this is
+    # a dead end.
+    if k == 1:
+        if P2 not in edgelist[cnode]:
+            return None
+        else:
+            return [chain + [P2]]
+
+    # We can afford to make links, run through all outgoing edges
+    retchain = []
+    for edge in edgelist[cnode]:
+
+        # Check to see if we've found it before reaching chain limit
+        if edge == P2:
+            retchain += [chain + [P2]]
+            continue
+        
+        # Search through edge with -1 chain length, append if it works
+        edge_chain = chainSearch(P2, chain.copy(), edge, k-1)
+        if edge_chain is not None and len(edge_chain) != 0:
+            retchain += edge_chain
+    
+    return retchain
