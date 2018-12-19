@@ -151,7 +151,7 @@ class Graph():
         return nodes
 
     
-    def findInfluencers(self, foodegree): # For Task 3
+    def findInfluencers(self, foodegree = "in"): # For Task 3
         ''' Returns a list of sorted influencers using the specified degree '''
         
         # Initialize a dictionary from internal list of nodes

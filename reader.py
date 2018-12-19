@@ -5,8 +5,8 @@ import os
 
 debugpath = "crash.txt"
 
-# Forgive me.
-sys.setrecursionlimit(8192)
+# Forgive me
+sys.setrecursionlimit(8129)
 
 # Define Global Vairables
 layer = None
@@ -29,7 +29,6 @@ def gracefulFailure(edges, excepted):
     global clock     # One clock for both
     global G
     
-    print(excepted)
     f = open(debugpath, "w")
     f.write("NODE COUNT: " + str(len(G.keys())) + '\n')
     f.write("LAYER: " + str(layer) + '\n')
@@ -120,6 +119,7 @@ def depthFirstSearch(graph, print_steps = False, directed = True, order = []):
     global postvisit
     global visited
     global G
+
     if G is None:
         resetGlobals(graph)   
     else:
@@ -192,7 +192,8 @@ def explore(v, directed = True, print_steps = False):
             try:
                 explore(edge, directed, print_steps)
             except (RecursionError, RuntimeError, OverflowError, MemoryError) as exc:
-                print("Max recursion reached on node " + str(v))
+                print("ERROR! " + str(exc) + " on node " + str(v) + "\n")
+                print("HALTING EXECUTION! " + str(v) + "\n")
                 gracefulFailure(edges, exc)
                 exit()
 
@@ -206,12 +207,11 @@ def explore(v, directed = True, print_steps = False):
 def kChain(P1, P2, k, G):
     ''' Finds all k-length chains between node 1 and node 2 '''
    
-    # Initialize chstom chain variables
+    # Initialize custom chain variables
     global edgelist
     edgelist = G.nodeDict()
-
     
-    return chainSearch(P2, [], P1, k)
+    return chainSearch(P2, [], P1, k-1)
 
 def chainSearch(P2, chain, cnode, k):
     ''' Search for a chain '''
@@ -228,16 +228,20 @@ def chainSearch(P2, chain, cnode, k):
 
     # We can afford to make links, run through all outgoing edges
     retchain = []
+    if cnode not in edgelist:
+        return []
     for edge in edgelist[cnode]:
 
         # Check to see if we've found it before reaching chain limit
         if edge == P2:
-            retchain += [chain + [P2]]
+            nc = [chain + [P2]]
+            if nc not in retchain:
+                retchain += [chain + [P2]]
             continue
         
         # Search through edge with -1 chain length, append if it works
         edge_chain = chainSearch(P2, chain.copy(), edge, k-1)
-        if edge_chain is not None and len(edge_chain) != 0:
+        if edge_chain is not None and len(edge_chain) != 0 and edge_chain not in retchain:
             retchain += edge_chain
     
     return retchain
