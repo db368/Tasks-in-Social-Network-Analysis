@@ -130,6 +130,7 @@ printAndWrite(out, "Dataset: " + datapath + '\n')
 
 # Task 3
 printAndWrite(out, printHeader("TASK 3: Find Influencers"))
+printAndWrite(out, "Stored as (node, indegree) pairs\n")
 Influencers = dset.findInfluencers()
 # Influencers = neatlyPrintList(dset.findInfluencers())
 out.write(neatlyPrintList(Influencers))
@@ -161,7 +162,7 @@ while(True):
     chains = tchains
 
     if len(chains) >= 1:
-        printAndWrite(out, "\n" + str(len(chains)) + " Chains Found for " + str(P1) +
+        printAndWrite(out, "\n" + str(len(chains)) +" Length "+str(k)+" Chains Found for " + str(P1) +
          " and " + str(P2) +"!"+'\n')
         
         out.write(neatlyPrintList(chains))
@@ -169,4 +170,5 @@ while(True):
         break
 
 out.close()
-    
+
+input("Press enter to close.")    
