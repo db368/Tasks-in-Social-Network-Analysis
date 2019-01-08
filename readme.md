@@ -5,7 +5,7 @@ A tool designed to analyze a graph network using theory from *Introduction to Al
 Included is a single dataset from SNAP for the purposes of demonstration.(Citation also available at the bottom)
 
 
-##Instructions
+## Instructions
 
 1. Clone repository
 2. Run Main.py
@@ -18,13 +18,20 @@ or text files.
 
 ## Citations
 
-** Textbook **  T.C.Cormen, C.E.Leiserson, R.L.Rivest, and C. Stein. “Introduction to Algorithms”, 3rd edition, MIT Press, ISBN-10 : 0262033844. 
+**Textbook** : T.C.Cormen, C.E.Leiserson, R.L.Rivest, and C. Stein. “Introduction to Algorithms”, 3rd edition, MIT Press, ISBN-10 : 0262033844. 
 
-** Dataset**: (As bibtex)
-snapnets,
+**Dataset** : (As bibtex)
+
+{snapnets,
+  
   author       = {Jure Leskovec and Andrej Krevl},
+  
   title        = {{SNAP Datasets}: {Stanford} Large Network Dataset Collection},
+  
   howpublished = {\url{http://snap.stanford.edu/data}},
+  
   month        = jun,
+  
   year         = 2014
+
 }
